@@ -30,6 +30,32 @@
 
 namespace android {
 
+class GraphicBufferStub {
+ public:
+  ~GraphicBufferStub();
+  GraphicBufferStub(uint32_t inWidth, uint32_t inHeight,
+        PixelFormat inFormat, uint32_t inUsage);
+  sp<android::GraphicBuffer> mBuffer;
+};
+
+GraphicBufferStub::GraphicBufferStub(uint32_t inWidth, uint32_t inHeight,
+        PixelFormat inFormat, uint32_t inUsage)
+  : mBuffer(new android::GraphicBuffer(inWidth, inHeight, inFormat, inUsage)) {
+} // constructors take base initializers
+
+GraphicBufferStub::~GraphicBufferStub() {}
+
+extern "C" {
+
+void _ZN7android13GraphicBufferC1Ejjij(uint32_t inWidth, uint32_t inHeight,
+        PixelFormat inFormat, uint32_t inUsage);
+
+void _ZN7android13GraphicBufferC1Ejjij(uint32_t inWidth, uint32_t inHeight,
+        PixelFormat inFormat, uint32_t inUsage) {
+	GraphicBufferStub::GraphicBufferStub(inWidth, inHeight, inFormat, inUsage);
+}
+}
+
 // ===========================================================================
 // Buffer and implementation of ANativeWindowBuffer
 // ===========================================================================
@@ -52,6 +78,22 @@ GraphicBuffer::GraphicBuffer()
     usage  = 0;
     handle = NULL;
 }
+
+#ifdef MTK_HARDWARE
+GraphicBuffer::GraphicBuffer(uint32_t inWidth, uint32_t inHeight,
+        PixelFormat inFormat, uint32_t inUsage)
+    : BASE(), mOwner(ownData), mBufferMapper(GraphicBufferMapper::get()),
+      mInitCheck(NO_ERROR), mId(getUniqueId()), mGenerationNumber(0)
+{
+    width  =
+    height =
+    stride =
+    format =
+    usage  = 0;
+    handle = NULL;
+    mInitCheck = initSize(inWidth, inHeight, inFormat, inUsage, "<Unknown>");
+}
+#endif
 
 GraphicBuffer::GraphicBuffer(uint32_t inWidth, uint32_t inHeight,
         PixelFormat inFormat, uint32_t inUsage, std::string requestorName)
